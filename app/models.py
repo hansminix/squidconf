@@ -25,6 +25,7 @@ class environment(db.Model):
     __table_name__ = 'environments'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255),nullable=False)
+    vipaddress = db.Column(db.String(100))
     description = db.Column(db.Text)
     squidconfig=db.relationship('squidconfig', back_populates='environment')
     squidport=db.relationship('squidport', back_populates='environment')
@@ -55,6 +56,7 @@ class squidport(db.Model):
     port = db.Column(db.Integer)
     reverse = db.Column(db.Boolean, default=False)
     options = db.Column(db.String(255))
+    certificate = db.Column(db.String(255))
     environment_id= db.Column(db.Integer,db.ForeignKey(environment.id))
     environment = db.relationship("environment", back_populates="squidport")
 
@@ -118,22 +120,24 @@ class clientview(ModelView):
 
 class squidportview(ModelView):
     can_export = True
-    form_columns = ['interface', 'port','reverse','options', 'environment']
-    column_labels = dict(interface='Interface',port='port',reverse='Reverse proxy',options='Opties', environment='Omgeving')
+    form_columns = ['interface', 'port','reverse','options','certificate','environment']
+    column_labels = dict(interface='Interface',port='port',reverse='Reverse proxy',options='Opties', certificate='SSL certificaat', environment='Omgeving')
     form_args = {
         'interface': { 'label': 'Interface nummer (start bij 0)'},
         'port': { 'label' : 'TCP Poort'},
         'reverse': { 'label': 'Reverse proxy'},
         'options': { 'label': 'Extra opties' },
+        'certificate': { 'label': 'SSL certificaat' },
         'environment': { 'label': 'Squid omgeving' }
         }
 
 class environmentview(ModelView):
     can_export = True
-    form_columns = ['name','description']
-    column_labels = dict(name='Naam',description='Omschrijving')
+    form_columns = ['name','vipaddress','description']
+    column_labels = dict(name='Naam',vipaddress='VIP adres',description='Omschrijving')
     form_args = {
         'name': { 'label': 'Naam', 'validators': [Regexp('^[0-9a-zA-Z_]+$',message='Alleen letters, cijfers en _ toegestaan'), Unique(environment.name, message='Naam bestaat al')] },
+        'vipaddress': { 'label': 'VIP adres', 'validators': [Regexp('^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$',message='Fout IP adres')] },
         'description': { 'label': 'Omschrijving'}
         }
 
